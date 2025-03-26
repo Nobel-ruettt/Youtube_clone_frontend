@@ -1,0 +1,169 @@
+<div class="dialog-overlay" *ngIf="isOpen" (click)="closeDialog()">
+  <div class="dialog-container" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h2>{{ currentStep === 1 ? 'Upload Video' : 'Upload File' }}</h2>
+      <button class="close-button" (click)="closeDialog()" [disabled]="isUploading">
+        <i class="material-icons">close</i>
+      </button>
+    </div>
+
+    <div class="dialog-content">
+      <!-- Step 1: Video Details -->
+      <div class="step-content" *ngIf="currentStep === 1">
+        <form [formGroup]="uploadForm">
+          <div class="form-group">
+            <label for="videoName">Video Title *</label>
+            <input
+              type="text"
+              id="videoName"
+              formControlName="name"
+              placeholder="Add a title that describes your video"
+            >
+            <div class="error-message" *ngIf="uploadForm.get('name')?.invalid && uploadForm.get('name')?.touched">
+              <span *ngIf="uploadForm.get('name')?.errors?.['required']">Title is required</span>
+              <span *ngIf="uploadForm.get('name')?.errors?.['maxlength']">Title cannot exceed 100 characters</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="videoDescription">Description</label>
+            <textarea
+              id="videoDescription"
+              formControlName="description"
+              rows="4"
+              placeholder="Tell viewers about your video"
+            ></textarea>
+            <div class="error-message" *ngIf="uploadForm.get('description')?.invalid && uploadForm.get('description')?.touched">
+              <span *ngIf="uploadForm.get('description')?.errors?.['maxlength']">Description cannot exceed 5000 characters</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="videoThumbnail">Thumbnail</label>
+            <div class="thumbnail-container">
+              <div class="thumbnail-preview" *ngIf="thumbnailPreview">
+                <img [src]="thumbnailPreview" alt="Thumbnail preview">
+              </div>
+              <div class="thumbnail-upload" *ngIf="!thumbnailPreview">
+                <i class="material-icons">image</i>
+                <span>Upload thumbnail</span>
+              </div>
+              <input
+                type="file"
+                id="videoThumbnail"
+                accept="image/*"
+                (change)="onThumbnailSelected($event)"
+              >
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Tags</label>
+            <div class="tags-container">
+              <div class="tags-list" *ngIf="tags.length > 0">
+                <div class="tag" *ngFor="let tag of tags.controls; let i = index">
+                  <span>{{ tag.value }}</span>
+                  <button type="button" (click)="removeTag(i)">
+                    <i class="material-icons">close</i>
+                  </button>
+                </div>
+              </div>
+              <div class="tags-input">
+                <input
+                  type="text"
+                  placeholder="Add tags (press Enter to add)"
+                  (keydown.enter)="addTag($event)"
+                >
+                <small>Add up to 10 tags to help viewers find your video</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <input type="checkbox" id="isAdult" formControlName="isAdult">
+            <label for="isAdult">This video contains adult content</label>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 2: File Upload -->
+      <div class="step-content" *ngIf="currentStep === 2">
+        <div class="upload-container" *ngIf="!selectedVideoFile && !isUploading">
+          <div class="upload-area">
+            <i class="material-icons">cloud_upload</i>
+            <h3>Select video to upload</h3>
+            <p>Drag and drop video files or click to select</p>
+            <input
+              type="file"
+              id="videoFile"
+              accept="video/*"
+              (change)="onVideoFileSelected($event)"
+            >
+            <button class="select-file-button">SELECT FILE</button>
+          </div>
+          <div class="upload-info">
+            <p>By submitting your videos to YouTube, you acknowledge that you agree to YouTube's Terms of Service and Community Guidelines.</p>
+            <p>Please be sure not to violate others' copyright or privacy rights.</p>
+          </div>
+        </div>
+
+        <div class="selected-file" *ngIf="selectedVideoFile && !isUploading">
+          <div class="file-info">
+            <i class="material-icons">movie</i>
+            <div class="file-details">
+              <div class="file-name">{{ selectedVideoFile.name }}</div>
+              <div class="file-size">{{ (selectedVideoFile.size / 1024 / 1024).toFixed(2) }} MB</div>
+            </div>
+          </div>
+          <button class="change-file-button" (click)="selectedVideoFile = null">
+            <i class="material-icons">refresh</i>
+            Change
+          </button>
+        </div>
+
+        <div class="upload-progress" *ngIf="isUploading && uploadProgress">
+          <div class="progress-info">
+            <div class="progress-status">
+              <span>{{ uploadProgress.message }}</span>
+              <span>{{ uploadProgress.progress.toFixed(0) }}%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="uploadProgress.progress"></div>
+            </div>
+          </div>
+          <div class="upload-complete" *ngIf="uploadProgress.status === 'complete'">
+            <i class="material-icons">check_circle</i>
+            <span>Upload complete! Your video will be available shortly.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog-footer">
+      <button
+        class="back-button"
+        *ngIf="currentStep > 1"
+        (click)="prevStep()"
+        [disabled]="isUploading"
+      >
+        Back
+      </button>
+      <button
+        class="next-button"
+        *ngIf="currentStep === 1"
+        (click)="nextStep()"
+        [disabled]="uploadForm.invalid"
+      >
+        Next
+      </button>
+      <button
+        class="upload-button"
+        *ngIf="currentStep === 2 && selectedVideoFile && !isUploading"
+        (click)="startUpload()"
+      >
+        Upload
+      </button>
+    </div>
+  </div>
+</div>
+

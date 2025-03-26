@@ -1,0 +1,74 @@
+/* You can add global styles to this file, and also import other style files */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #0f0f0f;
+  color: #ffffff;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+}
+
+/* Dark theme scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f0f0f;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3f3f3f;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Dark theme form elements */
+input, textarea, select {
+  background-color: #121212;
+  color: white;
+  border: 1px solid #303030;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #1c62b9;
+}
+
+button {
+  background-color: #272727;
+  color: white;
+  border: none;
+}
+
+button:hover:not(:disabled) {
+  background-color: #3d3d3d;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Links */
+a {
+  color: #3ea6ff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+

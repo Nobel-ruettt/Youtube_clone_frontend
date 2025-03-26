@@ -1,0 +1,10 @@
+<div class="app-container">
+  <app-header></app-header>
+  <div class="content-container" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-sidebar [collapsed]="sidebarCollapsed" [isLoggedIn]="isLoggedIn"></app-sidebar>
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
+

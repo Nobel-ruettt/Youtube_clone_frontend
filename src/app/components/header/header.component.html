@@ -1,0 +1,100 @@
+<header class="header">
+  <div class="header-start">
+    <button class="menu-button" aria-label="Menu" (click)="onMenuClick()">
+      <i class="material-icons">menu</i>
+    </button>
+    <!-- Add back to YouTube button when in studio route -->
+    <a *ngIf="isStudioRoute" [routerLink]="'/home'" class="back-button">
+      <i class="material-icons">arrow_back</i>
+      <span>Back to YouTube</span>
+    </a>
+    <a [routerLink]="isStudioRoute ? '/studio' : '/home'" class="brand-name">
+      {{ isStudioRoute ? 'Studio' : 'YouTube Clone' }}
+    </a>
+  </div>
+
+  <div class="header-center">
+    <form class="search-form" (submit)="$event.preventDefault(); onSearchSubmit()">
+      <div class="search-container" [class.focused]="isSearchFocused">
+        <input
+          type="text"
+          placeholder="Search"
+          class="search-input"
+          [(ngModel)]="searchQuery"
+          name="search"
+          autocomplete="off"
+          (focus)="onSearchFocus()"
+          (blur)="onSearchBlur()"
+        >
+        <button type="button" class="search-clear" *ngIf="searchQuery" (click)="searchQuery = ''">
+          <i class="material-icons">close</i>
+        </button>
+      </div>
+      <button type="submit" class="search-button" aria-label="Search">
+        <i class="material-icons">search</i>
+      </button>
+    </form>
+  </div>
+
+  <!-- Logged in state -->
+  <div class="header-end" *ngIf="isLoggedIn">
+    <!-- Only show these buttons when not in studio route -->
+    <ng-container *ngIf="!isStudioRoute">
+      <!-- Removed video_call icon button -->
+      <button class="icon-button" aria-label="Notifications">
+        <i class="material-icons">notifications</i>
+        <span class="notification-badge">9+</span>
+      </button>
+      <!-- Add Studio button -->
+      <a [routerLink]="'/studio'" class="studio-button">
+        <i class="material-icons">video_settings</i>
+        <span>Studio</span>
+      </a>
+    </ng-container>
+
+    <!-- Always show profile dropdown -->
+    <div class="dropdown">
+      <button class="avatar-button" aria-label="Profile" (click)="toggleDropdown($event)">
+        <div class="avatar">A</div>
+      </button>
+      <div class="dropdown-menu" [class.show]="isDropdownOpen">
+        <div class="dropdown-header">
+          <div class="avatar">A</div>
+          <div class="user-info">
+            <div class="user-name">User Name</div>
+            <div class="user-email">userexample.com</div>
+          </div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item">
+          <i class="material-icons">account_circle</i>
+          Your channel
+        </button>
+        <button class="dropdown-item">
+          <i class="material-icons">settings</i>
+          Settings
+        </button>
+        <div class="dropdown-divider"></div>
+        <!-- Add a link to switch between studio and main app -->
+        <a [routerLink]="isStudioRoute ? '/home' : '/studio'" class="dropdown-item">
+          <i class="material-icons">{{ isStudioRoute ? 'home' : 'video_settings' }}</i>
+          {{ isStudioRoute ? 'Back to YouTube' : 'YouTube Studio' }}
+        </a>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item" (click)="logout()">
+          <i class="material-icons">exit_to_app</i>
+          Sign out
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Not logged in state -->
+  <div class="header-end" *ngIf="!isLoggedIn">
+    <button class="sign-in-button" (click)="login()">
+      <i class="material-icons">account_circle</i>
+      <span>SIGN IN</span>
+    </button>
+  </div>
+</header>
+

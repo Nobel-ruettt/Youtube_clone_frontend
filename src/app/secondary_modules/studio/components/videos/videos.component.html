@@ -1,0 +1,107 @@
+<div class="videos-container">
+  <div class="videos-header">
+    <h1>Channel videos</h1>
+    <button class="upload-button" (click)="uploadVideo()">
+      <i class="material-icons">upload</i>
+      UPLOAD
+    </button>
+  </div>
+
+  <div class="videos-toolbar">
+    <div class="search-container">
+      <input
+        type="text"
+        placeholder="Search your videos"
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="onSearch()"
+      >
+      <button class="search-button" (click)="onSearch()">
+        <i class="material-icons">search</i>
+      </button>
+    </div>
+
+    <div class="filter-container">
+      <label>Filter:</label>
+      <select [(ngModel)]="selectedFilter" (change)="onFilterChange(selectedFilter)">
+        <option *ngFor="let option of filterOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+
+    <div class="sort-container">
+      <label>Sort by:</label>
+      <select [(ngModel)]="selectedSort" (change)="onSortChange(selectedSort)">
+        <option *ngFor="let option of sortOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div class="videos-list">
+    <table>
+      <thead>
+        <tr>
+          <th class="video-col">Video</th>
+          <th class="visibility-col">Visibility</th>
+          <th class="date-col">Date</th>
+          <th class="views-col">Views</th>
+          <th class="comments-col">Comments</th>
+          <th class="likes-col">Likes</th>
+          <th class="actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let video of videos">
+          <td class="video-col">
+            <div class="video-info">
+              <div class="thumbnail">
+                <div class="thumbnail-placeholder">
+                  <span class="duration">{{ video.duration }}</span>
+                </div>
+              </div>
+              <div class="video-details">
+                <div class="video-title">{{ video.title }}</div>
+                <div class="video-description">{{ video.description }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="visibility-col">
+            <span class="visibility-badge" [class.private]="video.visibility === 'Private'">
+              {{ video.visibility }}
+            </span>
+          </td>
+          <td class="date-col">{{ formatDate(video.uploadDate) }}</td>
+          <td class="views-col">{{ formatViews(video.views) }}</td>
+          <td class="comments-col">{{ video.comments }}</td>
+          <td class="likes-col">{{ video.likes }}</td>
+          <td class="actions-col">
+            <button class="action-button" (click)="editVideo(video.id)">
+              <i class="material-icons">edit</i>
+            </button>
+            <button class="action-button" (click)="deleteVideo(video.id)">
+              <i class="material-icons">delete</i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="videos-empty" *ngIf="videos.length === 0">
+    <div class="empty-state">
+      <i class="material-icons">videocam_off</i>
+      <h2>No videos found</h2>
+      <p>Upload a video to get started</p>
+      <button class="upload-button" (click)="uploadVideo()">
+        <i class="material-icons">upload</i>
+        UPLOAD
+      </button>
+    </div>
+  </div>
+
+  <!-- Include the upload dialog component -->
+  <app-upload-dialog></app-upload-dialog>
+</div>
+
