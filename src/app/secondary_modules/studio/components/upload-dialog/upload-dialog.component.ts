@@ -1,8 +1,8 @@
-import { Component, OnInit,  OnDestroy, HostListener } from "@angular/core"
-import { FormBuilder, FormGroup, Validators, FormArray } from "@angular/forms"
+import { Component,  OnInit,  OnDestroy, HostListener } from "@angular/core"
+import {  FormBuilder,  FormGroup, Validators,  FormArray } from "@angular/forms"
 import { Subscription } from "rxjs"
-import { DialogService } from "../../services/dialog.service"
-import { UploadMetadata, UploadProgress, UploadService } from "../../services/upload.service"
+import  { UploadMetadata, UploadProgress, UploadService } from "../../services/upload.service"
+import  { DialogService } from "../../services/dialog.service"
 
 @Component({
   selector: "app-upload-dialog",
@@ -17,8 +17,9 @@ export class UploadDialogComponent implements OnInit, OnDestroy {
   thumbnailPreview: string | null = null
   selectedVideoFile: File | null = null
   uploadProgress: UploadProgress | null = null
-  uploadId: string | null = null
+  sessionId = ""
   isUploading = false
+  uploadError: string | null = null
 
   private subscriptions = new Subscription()
 
@@ -50,8 +51,8 @@ export class UploadDialogComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe()
   }
 
-  @HostListener("document:keydown.escape")
-  onEscapeKey(): void {
+  @HostListener("document:keydown.escape", ["$event"])
+  onEscapeKey(event: KeyboardEvent): void {
     if (this.isOpen && !this.isUploading) {
       this.closeDialog()
     }
@@ -79,8 +80,9 @@ export class UploadDialogComponent implements OnInit, OnDestroy {
     this.thumbnailPreview = null
     this.selectedVideoFile = null
     this.uploadProgress = null
-    this.uploadId = null
+    this.sessionId = ""
     this.isUploading = false
+    this.uploadError = null
   }
 
   // Step 1: Form handling
@@ -154,13 +156,98 @@ export class UploadDialogComponent implements OnInit, OnDestroy {
     }
 
     this.isUploading = true
+    this.uploadError = null
     this.uploadProgress = {
       progress: 0,
       status: "pending",
       message: "Preparing upload...",
     }
 
-    // Step 1: Initialize upload with metadata
+    // Create chunks
+    const chunks = this.uploadService.createChunks(this.selectedVideoFile)
+    const totalChunks = chunks.length
+
+    // First API call: Initialize upload with only file information
+    this.uploadService
+      .initializeUpload(this.selectedVideoFile.name, this.selectedVideoFile.size, totalChunks)
+      .subscribe({
+        next: (response) => {
+          this.sessionId = response.fieldValues.SessionId
+          this.uploadVideoChunks(this.sessionId, chunks)
+        },
+        error: (error) => {
+          this.handleUploadError("Failed to initialize upload")
+        },
+      })
+  }
+
+  // Modify the uploadVideoChunks method to separate metadata saving
+  private uploadVideoChunks(sessionId: string, chunks: Blob[]): void {
+    let currentChunk = 0
+    const totalChunks = chunks.length
+
+    const uploadNextChunk = () => {
+      if (currentChunk < totalChunks) {
+        // Update progress display
+        this.uploadProgress = {
+          progress: (currentChunk / totalChunks) * 100,
+          status: "uploading",
+          message: `Uploading chunk ${currentChunk + 1} of ${totalChunks}...`,
+        }
+
+        // Upload the current chunk and wait for complete response
+        this.uploadService.uploadChunk(sessionId, chunks[currentChunk], currentChunk + 1).subscribe({
+          next: (success) => {
+            if (success) {
+              // Chunk uploaded successfully, move to next chunk
+              currentChunk++
+
+              // Update overall progress
+              const overallProgress = (currentChunk / totalChunks) * 100
+              this.uploadProgress = {
+                progress: overallProgress,
+                status: "uploading",
+                message: `Uploaded ${currentChunk} of ${totalChunks} chunks (${Math.round(overallProgress)}%)`,
+              }
+
+              // Process next chunk
+              uploadNextChunk()
+            } else {
+              this.handleUploadError(`Failed to upload chunk ${currentChunk + 1}`)
+            }
+          },
+          error: (error) => {
+            this.handleUploadError(`Failed to upload chunk ${currentChunk + 1}`)
+          },
+        })
+      } else {
+        // All chunks uploaded, complete the upload
+        this.uploadProgress = {
+          progress: 100,
+          status: "processing",
+          message: "Finalizing upload...",
+        }
+
+        // Call the completeMultipartUpload without metadata
+        this.uploadService.completeMultipartUpload(sessionId).subscribe({
+          next: (response) => {
+            // Now that upload is complete, save metadata separately
+            this.saveMetadata(sessionId)
+          },
+          error: (error) => {
+            this.handleUploadError("Failed to complete upload")
+          },
+        })
+      }
+    }
+
+    // Start uploading chunks
+    uploadNextChunk()
+  }
+
+  // Simplified saveMetadata method without progress tracking
+  private saveMetadata(sessionId: string): void {
+    // Prepare metadata for the completion step
     const metadata: UploadMetadata = {
       name: this.uploadForm.get("name")?.value,
       description: this.uploadForm.get("description")?.value,
@@ -169,63 +256,69 @@ export class UploadDialogComponent implements OnInit, OnDestroy {
       thumbnailFile: this.selectedThumbnail || undefined,
     }
 
-    this.uploadService.initializeUpload(metadata).subscribe((uploadId) => {
-      this.uploadId = uploadId
-
-      // Step 2: Upload thumbnail if available
-      if (this.selectedThumbnail) {
-        this.uploadProgress = {
-          progress: 0,
-          status: "uploading",
-          message: "Uploading thumbnail...",
-        }
-
-        this.uploadService.uploadThumbnail(uploadId, this.selectedThumbnail).subscribe(() => {
-          this.uploadVideoChunks(uploadId)
-        })
-      } else {
-        this.uploadVideoChunks(uploadId)
-      }
-    })
-  }
-
-  private uploadVideoChunks(uploadId: string): void {
-    if (!this.selectedVideoFile) {
-      return
+    this.uploadProgress = {
+      progress: 100,
+      status: "processing",
+      message: "Saving video metadata...",
     }
 
-    const chunks = this.uploadService.createChunks(this.selectedVideoFile)
-    let currentChunk = 0
+    // Call the simplified updateMetadata method from the service
+    this.uploadService.updateMetadata(sessionId, metadata).subscribe({
+      next: (response) => {
 
-    const uploadNextChunk = () => {
-      if (currentChunk < chunks.length) {
-        this.uploadService
-          .uploadChunk(uploadId, chunks[currentChunk], currentChunk, chunks.length)
-          .subscribe((progress) => {
-            this.uploadProgress = progress
-            currentChunk++
-            uploadNextChunk()
-          })
-      } else {
-        // All chunks uploaded, complete the upload
-        this.uploadService.completeUpload(uploadId).subscribe((progress) => {
+        if(response.isSuccess == false){
+
+          this.uploadProgress = {
+            progress: 100,
+            status: "complete",
+            message: "Upload complete, but metadata update failed. You can edit details later.",
+          }
+        } else {
+          console.log("Metadata saved successfully:", response)
+
           this.uploadProgress = {
             progress: 100,
             status: "complete",
             message: "Upload complete!",
           }
+        }
 
-          // Reset upload state after 3 seconds
-          setTimeout(() => {
-            this.isUploading = false
-            this.dialogService.closeDialog()
-          }, 3000)
-        })
-      }
+        // Reset upload state after 3 seconds
+        setTimeout(() => {
+          this.isUploading = false
+          this.dialogService.closeDialog()
+        }, 3000)
+      },
+      error: (error) => {
+        console.error("Error saving metadata:", error)
+        this.uploadProgress = {
+          progress: 100,
+          status: "complete",
+          message: "Upload complete, but metadata update failed. You can edit details later.",
+        }
+
+        // Still close the dialog after a delay
+        setTimeout(() => {
+          this.isUploading = false
+          this.dialogService.closeDialog()
+        }, 3000)
+      },
+    })
+  }
+
+  private handleUploadError(message: string): void {
+    this.uploadError = message
+    this.uploadProgress = {
+      progress: 0,
+      status: "error",
+      message: message,
     }
+    this.isUploading = false
+  }
 
-    // Start uploading chunks
-    uploadNextChunk()
+  // Retry upload after error
+  retryUpload(): void {
+    this.uploadError = null
+    this.startUpload()
   }
 }
-

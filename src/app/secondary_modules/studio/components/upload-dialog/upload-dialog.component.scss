@@ -441,3 +441,125 @@
   }
 }
 
+// Add these styles for the upload steps
+
+.upload-steps {
+  display: flex;
+  justify-content: space-between;
+  margin: 24px 0;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 16px;
+    left: 24px;
+    right: 24px;
+    height: 2px;
+    background-color: #303030;
+    z-index: 0;
+  }
+
+  .upload-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #303030;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .step-label {
+      font-size: 12px;
+      color: #aaa;
+      text-align: center;
+    }
+
+    &.active {
+      .step-number {
+        background-color: #3ea6ff;
+        color: #0f0f0f;
+      }
+
+      .step-label {
+        color: #3ea6ff;
+        font-weight: 500;
+      }
+    }
+
+    &.completed {
+      .step-number {
+        background-color: #4caf50;
+        color: white;
+      }
+
+      .step-label {
+        color: #4caf50;
+      }
+    }
+  }
+}
+
+// Add these styles for the upload error state
+.upload-error {
+  background-color: rgba(255, 0, 0, 0.1);
+  border: 1px solid #ff4e45;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  .error-icon {
+    margin-bottom: 16px;
+
+    i {
+      font-size: 48px;
+      color: #ff4e45;
+    }
+  }
+
+  .error-message {
+    margin-bottom: 16px;
+
+    h3 {
+      margin: 0 0 8px;
+      color: #ff4e45;
+    }
+
+    p {
+      margin: 0;
+    }
+  }
+
+  .retry-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #ff4e45;
+    color: white;
+    border: none;
+    border-radius: 2px;
+    padding: 8px 16px;
+    font-weight: 500;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #ff6b64;
+    }
+  }
+}
+

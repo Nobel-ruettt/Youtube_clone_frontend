@@ -2,7 +2,7 @@
   <div class="dialog-container" (click)="$event.stopPropagation()">
     <div class="dialog-header">
       <h2>{{ currentStep === 1 ? 'Upload Video' : 'Upload File' }}</h2>
-      <button class="close-button" (click)="closeDialog()" [disabled]="isUploading">
+      <button class="close-button" (click)="closeDialog()" [disabled]="isUploading && !uploadError">
         <i class="material-icons">close</i>
       </button>
     </div>
@@ -107,7 +107,7 @@
           </div>
         </div>
 
-        <div class="selected-file" *ngIf="selectedVideoFile && !isUploading">
+        <div class="selected-file" *ngIf="selectedVideoFile && !isUploading && !uploadError">
           <div class="file-info">
             <i class="material-icons">movie</i>
             <div class="file-details">
@@ -121,7 +121,23 @@
           </button>
         </div>
 
-        <div class="upload-progress" *ngIf="isUploading && uploadProgress">
+        <!-- Upload Error State -->
+        <div class="upload-error" *ngIf="uploadError">
+          <div class="error-icon">
+            <i class="material-icons">error</i>
+          </div>
+          <div class="error-message">
+            <h3>Upload Failed</h3>
+            <p>{{ uploadError }}</p>
+          </div>
+          <button class="retry-button" (click)="retryUpload()">
+            <i class="material-icons">refresh</i>
+            Retry Upload
+          </button>
+        </div>
+
+        <!-- Upload Progress State -->
+        <div class="upload-progress" *ngIf="isUploading && uploadProgress && !uploadError">
           <div class="progress-info">
             <div class="progress-status">
               <span>{{ uploadProgress.message }}</span>
@@ -131,9 +147,25 @@
               <div class="progress-fill" [style.width.%]="uploadProgress.progress"></div>
             </div>
           </div>
+
+          <div class="upload-steps">
+            <div class="upload-step" [class.active]="uploadProgress.status === 'pending'" [class.completed]="uploadProgress.progress > 0">
+              <div class="step-number">1</div>
+              <div class="step-label">Initialize Upload</div>
+            </div>
+            <div class="upload-step" [class.active]="uploadProgress.status === 'uploading'" [class.completed]="uploadProgress.progress === 100 && uploadProgress.status !== 'uploading'">
+              <div class="step-number">2</div>
+              <div class="step-label">Upload Chunks</div>
+            </div>
+            <div class="upload-step" [class.active]="uploadProgress.status === 'processing'" [class.completed]="uploadProgress.status === 'complete'">
+              <div class="step-number">3</div>
+              <div class="step-label">Complete Upload</div>
+            </div>
+          </div>
+
           <div class="upload-complete" *ngIf="uploadProgress.status === 'complete'">
             <i class="material-icons">check_circle</i>
-            <span>Upload complete! Your video will be available shortly.</span>
+            <span>{{ uploadProgress.message }}.</span>
           </div>
         </div>
       </div>
@@ -142,9 +174,8 @@
     <div class="dialog-footer">
       <button
         class="back-button"
-        *ngIf="currentStep > 1"
+        *ngIf="currentStep > 1 && (!isUploading || uploadError)"
         (click)="prevStep()"
-        [disabled]="isUploading"
       >
         Back
       </button>
@@ -158,7 +189,7 @@
       </button>
       <button
         class="upload-button"
-        *ngIf="currentStep === 2 && selectedVideoFile && !isUploading"
+        *ngIf="currentStep === 2 && selectedVideoFile && !isUploading && !uploadError"
         (click)="startUpload()"
       >
         Upload
