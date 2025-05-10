@@ -1,34 +1,25 @@
 <div class="videos-container">
   <div class="videos-header">
     <h1>Channel videos</h1>
-    <button class="upload-button" (click)="uploadVideo()">
-      <i class="material-icons">upload</i>
-      UPLOAD
-    </button>
-  </div>
-
-  <div class="videos-toolbar">
-    <div class="search-container">
-      <input
-        type="text"
-        placeholder="Search your videos"
-        [(ngModel)]="searchQuery"
-        (keyup.enter)="onSearch()"
-      >
-      <button class="search-button" (click)="onSearch()">
-        <i class="material-icons">search</i>
+    <div class="header-actions">
+      <button class="refresh-button" (click)="refreshVideos()" [disabled]="isLoading" title="Refresh videos">
+        <i class="material-icons" [class.rotating]="isLoading">refresh</i>
+      </button>
+      <button class="upload-button" (click)="uploadVideo()">
+        <i class="material-icons">upload</i>
+        UPLOAD
       </button>
     </div>
+  </div>
 
-    <div class="filter-container">
-      <label>Filter:</label>
-      <select [(ngModel)]="selectedFilter" (change)="onFilterChange(selectedFilter)">
-        <option *ngFor="let option of filterOptions" [value]="option.value">
-          {{ option.label }}
-        </option>
-      </select>
-    </div>
+  <!-- Error message -->
+  <div class="error-message" *ngIf="error">
+    <i class="material-icons">error</i>
+    <span>{{ error }}</span>
+    <button class="retry-button" (click)="refreshVideos()">Retry</button>
+  </div>
 
+  <div class="videos-toolbar" *ngIf="!isLoading && !error && videos.length > 0">
     <div class="sort-container">
       <label>Sort by:</label>
       <select [(ngModel)]="selectedSort" (change)="onSortChange(selectedSort)">
@@ -37,14 +28,40 @@
         </option>
       </select>
     </div>
+
+    <!-- View mode toggle -->
+    <div class="view-mode-container">
+      <button
+        class="view-mode-button"
+        [class.active]="viewMode === 'list'"
+        (click)="viewMode = 'list'"
+        title="List view"
+      >
+        <i class="material-icons">view_list</i>
+      </button>
+      <button
+        class="view-mode-button"
+        [class.active]="viewMode === 'grid'"
+        (click)="viewMode = 'grid'"
+        title="Grid view"
+      >
+        <i class="material-icons">grid_view</i>
+      </button>
+    </div>
   </div>
 
-  <div class="videos-list">
+  <!-- Loading state -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+    <p>Loading videos...</p>
+  </div>
+
+  <!-- List View -->
+  <div class="videos-list" *ngIf="!isLoading && !error && videos.length > 0 && viewMode === 'list'">
     <table>
       <thead>
         <tr>
           <th class="video-col">Video</th>
-          <th class="visibility-col">Visibility</th>
           <th class="date-col">Date</th>
           <th class="views-col">Views</th>
           <th class="comments-col">Comments</th>
@@ -57,7 +74,7 @@
           <td class="video-col">
             <div class="video-info">
               <div class="thumbnail">
-                <div class="thumbnail-placeholder">
+                <div class="thumbnail-placeholder" [style.background-image]="'url(' + video.thumbnail + ')'">
                   <span class="duration">{{ video.duration }}</span>
                 </div>
               </div>
@@ -67,29 +84,49 @@
               </div>
             </div>
           </td>
-          <td class="visibility-col">
-            <span class="visibility-badge" [class.private]="video.visibility === 'Private'">
-              {{ video.visibility }}
-            </span>
-          </td>
           <td class="date-col">{{ formatDate(video.uploadDate) }}</td>
           <td class="views-col">{{ formatViews(video.views) }}</td>
           <td class="comments-col">{{ video.comments }}</td>
           <td class="likes-col">{{ video.likes }}</td>
           <td class="actions-col">
-            <button class="action-button" (click)="editVideo(video.id)">
-              <i class="material-icons">edit</i>
-            </button>
-            <button class="action-button" (click)="deleteVideo(video.id)">
-              <i class="material-icons">delete</i>
-            </button>
+            <div class="action-buttons">
+              <!-- Removed edit button -->
+              <button class="action-button" (click)="deleteVideo(video.id)" title="Delete video">
+                <i class="material-icons">delete</i>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <div class="videos-empty" *ngIf="videos.length === 0">
+  <!-- Grid View -->
+  <div class="videos-grid" *ngIf="!isLoading && !error && videos.length > 0 && viewMode === 'grid'">
+    <div class="video-card" *ngFor="let video of videos">
+      <div class="video-thumbnail">
+        <div class="thumbnail-placeholder" [style.background-image]="'url(' + video.thumbnail + ')'">
+          <span class="duration">{{ video.duration }}</span>
+        </div>
+      </div>
+      <div class="video-card-content">
+        <div class="video-card-title">{{ video.title }}</div>
+        <div class="video-card-info">
+          <span class="video-card-views">{{ formatViews(video.views) }} views</span>
+          <span class="video-card-year">{{ getYear(video.uploadDate) }}</span>
+        </div>
+        <div class="video-card-actions">
+          <!-- Removed edit button -->
+          <button class="action-button" (click)="deleteVideo(video.id)" title="Delete">
+            <i class="material-icons">delete</i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="videos-empty" *ngIf="!isLoading && !error && videos.length === 0">
     <div class="empty-state">
       <i class="material-icons">videocam_off</i>
       <h2>No videos found</h2>
@@ -104,4 +141,3 @@
   <!-- Include the upload dialog component -->
   <app-upload-dialog></app-upload-dialog>
 </div>
-

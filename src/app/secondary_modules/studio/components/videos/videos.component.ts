@@ -1,57 +1,18 @@
-import { Component, type OnInit } from "@angular/core"
+import { Component, type OnInit, type OnDestroy } from "@angular/core"
+import { Subscription } from "rxjs"
 import { DialogService } from "../../services/dialog.service"
+import { VideoService, Video } from "../../services/video.service"
 
 @Component({
   selector: "app-videos",
   templateUrl: "./videos.component.html",
   styleUrls: ["./videos.component.scss"],
 })
-export class VideosComponent implements OnInit {
-  videos = [
-    {
-      id: "vid1",
-      thumbnail: "/assets/thumbnails/video1.jpg",
-      title: "Getting Started with Angular",
-      description: "Learn the basics of Angular framework",
-      visibility: "Public",
-      uploadDate: new Date(2023, 5, 15),
-      views: 1245,
-      likes: 87,
-      comments: 23,
-      duration: "12:34",
-    },
-    {
-      id: "vid2",
-      thumbnail: "/assets/thumbnails/video2.jpg",
-      title: "Advanced CSS Techniques",
-      description: "Master modern CSS layouts and animations",
-      visibility: "Public",
-      uploadDate: new Date(2023, 6, 22),
-      views: 3456,
-      likes: 210,
-      comments: 45,
-      duration: "18:22",
-    },
-    {
-      id: "vid3",
-      thumbnail: "/assets/thumbnails/video3.jpg",
-      title: "JavaScript Promises Explained",
-      description: "Understanding asynchronous JavaScript",
-      visibility: "Private",
-      uploadDate: new Date(2023, 7, 10),
-      views: 0,
-      likes: 0,
-      comments: 0,
-      duration: "15:47",
-    },
-  ]
-
-  filterOptions = [
-    { label: "All", value: "all" },
-    { label: "Public", value: "public" },
-    { label: "Private", value: "private" },
-    { label: "Unlisted", value: "unlisted" },
-  ]
+export class VideosComponent implements OnInit, OnDestroy {
+  videos: Video[] = []
+  isLoading = false
+  error: string | null = null
+  private subscription = new Subscription()
 
   sortOptions = [
     { label: "Date (newest)", value: "date_desc" },
@@ -62,31 +23,78 @@ export class VideosComponent implements OnInit {
     { label: "Alphabetical (Z-A)", value: "alpha_desc" },
   ]
 
-  selectedFilter = "all"
   selectedSort = "date_desc"
-  searchQuery = ""
+  viewMode: "list" | "grid" = "grid" // Default to grid view
 
-  constructor(private dialogService: DialogService) {}
+  constructor(
+    private dialogService: DialogService,
+    private videoService: VideoService,
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.loadVideos()
+  }
 
-  onFilterChange(filter: string): void {
-    this.selectedFilter = filter
-    // In a real app, this would filter the videos
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe()
+  }
+
+  loadVideos(): void {
+    this.isLoading = true
+    this.error = null
+
+    this.subscription.add(
+      this.videoService.getUserVideos().subscribe({
+        next: (videos) => {
+          this.videos = videos || []
+          this.sortVideos()
+          this.isLoading = false
+        },
+        error: (err) => {
+          this.error = err.message || "Failed to load videos"
+          this.isLoading = false
+          this.videos = [] // Clear videos on error
+        },
+      }),
+    )
   }
 
   onSortChange(sort: string): void {
     this.selectedSort = sort
-    // In a real app, this would sort the videos
+    this.sortVideos()
   }
 
-  onSearch(): void {
-    // In a real app, this would search the videos
-    console.log("Searching for:", this.searchQuery)
+  sortVideos(): void {
+    if (!this.videos || this.videos.length === 0) return
+
+    switch (this.selectedSort) {
+      case "date_desc":
+        this.videos.sort((a, b) => b.uploadDate.getTime() - a.uploadDate.getTime())
+        break
+      case "date_asc":
+        this.videos.sort((a, b) => a.uploadDate.getTime() - b.uploadDate.getTime())
+        break
+      case "views_desc":
+        this.videos.sort((a, b) => b.views - a.views)
+        break
+      case "views_asc":
+        this.videos.sort((a, b) => a.views - b.views)
+        break
+      case "alpha_asc":
+        this.videos.sort((a, b) => a.title.localeCompare(b.title))
+        break
+      case "alpha_desc":
+        this.videos.sort((a, b) => b.title.localeCompare(a.title))
+        break
+    }
   }
 
   formatDate(date: Date): string {
     return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+  }
+
+  getYear(date: Date): number {
+    return date.getFullYear()
   }
 
   formatViews(views: number): string {
@@ -103,14 +111,20 @@ export class VideosComponent implements OnInit {
     console.log("Deleting video:", videoId)
   }
 
-  editVideo(videoId: string): void {
-    // In a real app, this would navigate to edit page
-    console.log("Editing video:", videoId)
-  }
+  // Removed editVideo method
 
   uploadVideo(): void {
     // Open the upload dialog
     this.dialogService.openDialog()
   }
-}
 
+  // Toggle between list and grid view
+  toggleViewMode(): void {
+    this.viewMode = this.viewMode === "list" ? "grid" : "list"
+  }
+
+  // Refresh videos
+  refreshVideos(): void {
+    this.loadVideos()
+  }
+}
