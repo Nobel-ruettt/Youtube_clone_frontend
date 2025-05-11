@@ -6,6 +6,10 @@ const routes: Routes = [
   { path: "", redirectTo: "home", pathMatch: "full" },
   { path: "home", component: HomeComponent },
   { path: "studio", loadChildren: () => import("./secondary_modules/studio/studio.module").then((m) => m.StudioModule) },
+  {
+    path: "watch/:id",
+    loadChildren: () => import("./secondary_modules/watch/watch.module").then((m) => m.WatchModule),
+  },
   { path: "**", redirectTo: "home" },
 ];
 

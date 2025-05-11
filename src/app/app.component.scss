@@ -9,6 +9,12 @@
   display: flex;
   flex: 1;
   margin-top: 56px; /* Changed from padding-top to margin-top */
+
+  &.no-sidebar {
+    .main-content {
+      margin-left: 0;
+    }
+  }
 }
 
 .main-content {
@@ -18,6 +24,10 @@
   min-height: calc(100vh - 56px);
   background-color: #0f0f0f;
   padding: 24px;
+
+  &.watch-page {
+    padding: 0;
+  }
 }
 
 .sidebar-collapsed .main-content {
@@ -28,10 +38,13 @@
   .main-content {
     margin-left: 0;
     padding: 16px;
+
+    &.watch-page {
+      padding: 0;
+    }
   }
 
   .sidebar-collapsed .main-content {
     margin-left: 0;
   }
 }
-

@@ -29,7 +29,7 @@ export class SidebarComponent implements OnInit {
 
   // Expanded to 20 subscriptions
   subscriptions = [
-    { name: "Channel 1", avatar: "C1", link: "/channel/1" },
+    { name: "Shunno", avatar: "C1", link: "/channel/1" },
     { name: "Channel 2", avatar: "C2", link: "/channel/2" },
     { name: "Channel 3", avatar: "C3", link: "/channel/3" },
     { name: "Channel 4", avatar: "C4", link: "/channel/4" },

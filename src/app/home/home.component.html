@@ -1,6 +1,64 @@
 <div class="home-container">
-  <h1>Home Page</h1>
-  <p>This is the main YouTube Clone home page.</p>
-  <!-- Removed the studio link -->
-</div>
+  <div class="home-header">
+    <h1>Home</h1>
+    <div class="header-actions">
+      <button class="refresh-button" (click)="refreshVideos()" [disabled]="isLoading">
+        <i class="material-icons" [class.rotating]="isLoading">refresh</i>
+      </button>
+    </div>
+  </div>
 
+  <!-- Error message -->
+  <div class="error-message" *ngIf="error">
+    <i class="material-icons">error</i>
+    <span>{{ error }}</span>
+    <button class="retry-button" (click)="loadVideos()">Retry</button>
+  </div>
+
+  <!-- Loading state -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+    <p>Loading videos...</p>
+  </div>
+
+  <!-- Videos toolbar -->
+  <div class="videos-toolbar" *ngIf="!isLoading && !error && videos.length > 0">
+    <div class="sort-container">
+      <label for="sort-select">Sort by:</label>
+      <select id="sort-select" (change)="onSortChange($event)">
+        <option *ngFor="let option of sortOptions" [value]="option.value" [selected]="selectedSort === option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Videos grid -->
+  <div class="videos-grid" *ngIf="!isLoading && !error && videos.length > 0">
+    <div class="video-card" *ngFor="let video of videos" (click)="watchVideo(video.id)">
+      <div class="video-thumbnail">
+        <div class="thumbnail-placeholder" [style.background-image]="'url(' + video.thumbnail + ')'">
+          <span class="duration">{{ video.duration }}</span>
+        </div>
+      </div>
+      <div class="video-card-content">
+        <div class="video-details">
+          <div class="video-card-title">{{ video.title }}</div>
+          <div class="video-card-info">
+            <span class="video-card-views">{{ formatViews(video.views) }}</span>
+            <span class="video-card-date">{{ formatDate(video.uploadDate) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="videos-empty" *ngIf="!isLoading && !error && videos.length === 0">
+    <div class="empty-state">
+      <i class="material-icons">videocam_off</i>
+      <h2>No videos found</h2>
+      <p>There are no videos available at the moment.</p>
+    </div>
+  </div>
+</div>

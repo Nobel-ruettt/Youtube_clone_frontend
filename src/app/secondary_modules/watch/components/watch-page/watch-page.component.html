@@ -1,0 +1,46 @@
+<div class="watch-container">
+  <!-- Loading state -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+    <p>Loading video...</p>
+  </div>
+
+  <!-- Error state -->
+  <div class="error-container" *ngIf="error">
+    <div class="error-message">
+      <i class="material-icons">error</i>
+      <h2>{{ error }}</h2>
+      <p>Please try again later or check the video URL</p>
+      <a routerLink="/home" class="back-button">
+        <i class="material-icons">arrow_back</i>
+        Back to Home
+      </a>
+    </div>
+  </div>
+
+  <!-- Video content -->
+  <div class="video-content" *ngIf="!isLoading && !error && videoDetails">
+    <!-- Video player -->
+    <div class="player-container">
+      <app-video-player
+        [videoUrl]="videoDetails.hlsUrl"
+        [poster]="videoDetails.thumbnail"
+        [autoplay]="true"
+      ></app-video-player>
+    </div>
+
+    <!-- Video info -->
+    <div class="video-info">
+      <h1 class="video-title">{{ videoDetails.title }}</h1>
+
+      <div class="video-stats">
+        <span class="views-count">{{ formatViews(videoDetails.views) }}</span>
+        <span class="upload-date">{{ formatDate(videoDetails.uploadDate) }}</span>
+      </div>
+
+      <div class="video-description" *ngIf="videoDetails.description">
+        <p>{{ videoDetails.description }}</p>
+      </div>
+    </div>
+  </div>
+</div>

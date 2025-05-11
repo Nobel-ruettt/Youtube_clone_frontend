@@ -52,21 +52,6 @@
       <!-- Subscriptions section - only visible when logged in -->
       <div class="sidebar-divider"></div>
 
-      <div class="sidebar-section">
-        <div class="sidebar-header">
-          <span>SUBSCRIPTIONS</span>
-        </div>
-        <a *ngFor="let channel of visibleSubscriptions" [routerLink]="channel.link" class="sidebar-item" routerLinkActive="active">
-          <div class="channel-avatar">{{ channel.avatar }}</div>
-          <span class="sidebar-label">{{ channel.name }}</span>
-        </a>
-
-        <!-- Show more/less button -->
-        <a class="sidebar-item show-more" *ngIf="hasMoreSubscriptions" (click)="toggleSubscriptions()">
-          <i class="material-icons">{{ showAllSubscriptions ? 'expand_less' : 'expand_more' }}</i>
-          <span class="sidebar-label">{{ showAllSubscriptions ? 'Show less' : 'Show more' }}</span>
-        </a>
-      </div>
     </ng-container>
 
     <div class="sidebar-divider"></div>

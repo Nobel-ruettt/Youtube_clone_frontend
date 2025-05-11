@@ -56,7 +56,7 @@
     <p>Loading videos...</p>
   </div>
 
-  <!-- List View -->
+ <!-- List View -->
   <div class="videos-list" *ngIf="!isLoading && !error && videos.length > 0 && viewMode === 'list'">
     <table>
       <thead>
@@ -70,8 +70,8 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let video of videos">
-          <td class="video-col">
+        <tr *ngFor="let video of videos" style="cursor: pointer;" (click)="watchVideo(video.id)">
+          <td class="video-col" (click)="$event.stopPropagation(); watchVideo(video.id)" style="cursor: pointer;">
             <div class="video-info">
               <div class="thumbnail">
                 <div class="thumbnail-placeholder" [style.background-image]="'url(' + video.thumbnail + ')'">
@@ -90,8 +90,7 @@
           <td class="likes-col">{{ video.likes }}</td>
           <td class="actions-col">
             <div class="action-buttons">
-              <!-- Removed edit button -->
-              <button class="action-button" (click)="deleteVideo(video.id)" title="Delete video">
+              <button class="action-button" (click)="$event.stopPropagation(); deleteVideo(video.id)" title="Delete video">
                 <i class="material-icons">delete</i>
               </button>
             </div>
@@ -103,27 +102,27 @@
 
   <!-- Grid View -->
   <div class="videos-grid" *ngIf="!isLoading && !error && videos.length > 0 && viewMode === 'grid'">
-    <div class="video-card" *ngFor="let video of videos">
-      <div class="video-thumbnail">
+    <div class="video-card" *ngFor="let video of videos" (click)="watchVideo(video.id)" style="cursor: pointer;">
+      <div class="video-thumbnail" (click)="$event.stopPropagation(); watchVideo(video.id)" style="cursor: pointer;">
         <div class="thumbnail-placeholder" [style.background-image]="'url(' + video.thumbnail + ')'">
           <span class="duration">{{ video.duration }}</span>
         </div>
       </div>
       <div class="video-card-content">
-        <div class="video-card-title">{{ video.title }}</div>
+        <div class="video-card-title" (click)="$event.stopPropagation(); watchVideo(video.id)" style="cursor: pointer;">{{ video.title }}</div>
         <div class="video-card-info">
           <span class="video-card-views">{{ formatViews(video.views) }} views</span>
           <span class="video-card-year">{{ getYear(video.uploadDate) }}</span>
         </div>
         <div class="video-card-actions">
-          <!-- Removed edit button -->
-          <button class="action-button" (click)="deleteVideo(video.id)" title="Delete">
+          <button class="action-button" (click)="$event.stopPropagation(); deleteVideo(video.id)" title="Delete">
             <i class="material-icons">delete</i>
           </button>
         </div>
       </div>
     </div>
   </div>
+
 
   <!-- Empty state -->
   <div class="videos-empty" *ngIf="!isLoading && !error && videos.length === 0">

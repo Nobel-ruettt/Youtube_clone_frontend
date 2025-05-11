@@ -1,7 +1,8 @@
-import { Component, type OnInit, type OnDestroy } from "@angular/core"
+import { Component,  OnInit,  OnDestroy } from "@angular/core"
+import  { Router } from "@angular/router"
 import { Subscription } from "rxjs"
-import { DialogService } from "../../services/dialog.service"
-import { VideoService, Video } from "../../services/video.service"
+import  { DialogService } from "../../services/dialog.service"
+import  { VideoService, Video } from "../../services/video.service"
 
 @Component({
   selector: "app-videos",
@@ -29,6 +30,7 @@ export class VideosComponent implements OnInit, OnDestroy {
   constructor(
     private dialogService: DialogService,
     private videoService: VideoService,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -126,5 +128,9 @@ export class VideosComponent implements OnInit, OnDestroy {
   // Refresh videos
   refreshVideos(): void {
     this.loadVideos()
+  }
+
+  watchVideo(videoId: string): void {
+    this.router.navigate(["/watch", videoId])
   }
 }
